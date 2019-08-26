@@ -1,0 +1,138 @@
+[ 
+   "autonomous agent",{ 
+/*
+# ARGAA
+## A Renting Guarantee Autonomous Agent
+Two parties agree on the amount of a renting guarantee, the renter send the amount as well as the address of the other party to the AA, If later both agree on how to spread the guarantee, it is paid to both parties.
+
+Use cases:
+* Create an named guarantee by sending its amount and the address of the other party:
+   * 'create' = <amount of guarantee>
+   * 'other_party' = <address>
+* Each party can propose the part of the guarantee amount to release to the other_party:
+   * 'amount' = <amount for the other party>
+* The owner of the AA can withdraw the dust.
+
+*/
+		init: "{
+			// Owner of the AA can withdraw the dust if calculable
+			$OWNER = "MYESSCFGDERS3YIEGNZDOG2BI5HKQHLU";
+		}",
+	   	messages: {
+			cases: [
+				{ 	// create the common fund  to be used as guarantee on the renting of something valuable.
+					if: "{ trigger.data.create }",
+					init: "{ 
+						$name = trigger.data.create;
+						$other_party = trigger.data.other_party otherwise bounce ("need 'other_party' address!");
+						$guarantee = trigger.output[[asset=base]];
+						$total_guarantee_balance = var["total_guarantee_balance"] otherwise 0;
+					}",
+					messages: [
+                  		{ 
+							app: "state", state: "{
+								var[$name||"_party1"] = trigger.address;
+								var[$name||"_party2"] = $other_party;
+								var[$name||"_guarantee"] = $guarantee;
+
+								var["total_guarantee_balance"] = $total_guarantee_balance + $guarantee;
+
+								response['message'] = "Done! Later, the parties will have to agree on how to spread the guarantee ("||trigger.output[[asset=base]]||") by sending the 'amount' they allow the other party to receive, if the sum of the 2 amounts is equal to the guarantee then the payment will be executed.";
+							}"
+						}
+					]
+				},
+				{ 	// propose the amount to release to the other.
+					if: "{ trigger.data.name }",
+					init: "{ 
+						$name = trigger.data.name;
+						$guarantee = var[$name||"_guarantee"] otherwise bounce ("Guarantee 'name' do not exist!");
+						$amount = trigger.data.amount otherwise bounce ("Need the 'amount' you allow the other party to receive!");
+						if ($amount > $guarantee) bounce ("The amount is bigger than the full guarantee!");
+						
+						if (var[$name||"_party1"] == trigger.address)
+						{
+							$proposition1 = $amount;
+							$proposition2 = var[$name||"_proposition2"] otherwise $guarantee;
+						}
+						if (var[$name||"_party2"] == trigger.address)
+						{
+							$proposition1 = var[$name||"_proposition1"] otherwise $guarantee;
+							$proposition2 = $amount;
+						}
+						
+						if (!($proposition1)) bounce ("You are not part of the agreement!");
+
+
+						if (( $proposition1 + $proposition2 ) == $guarantee)
+						{
+							$agreement_found = true;
+							$amount_to_send_to_1 = $proposition2;
+							$amount_to_send_to_2 = $proposition1;
+						}
+					}",
+					messages: [
+						{
+							if: "{ $agreement_found }",
+							app: 'payment',
+							payload: {
+								asset: "base",
+								outputs: [
+									{ address: "{var[$name||"_party1"]}", amount: "{ $amount_to_send_to_1 }" },
+									{ address: "{var[$name||"_party2"]}", amount: "{ $amount_to_send_to_2 }" },
+									{ address: "{trigger.address}", amount: "{ trigger.output[[asset=base]]-2000 }" }, // 1000 for to return this amount + 1000 to later be able to send full balance.
+								]
+							}
+						},
+                  		{ 
+							app: "state", state: "{
+								if ($agreement_found)
+								{ // clear the full state
+									var[$name||"_party1"] = false;
+									var[$name||"_party2"] = false;
+									var[$name||"_guarantee"] =  false;
+									var[$name||"_proposition1"] = false;
+									var[$name||"_proposition2"] = false;
+									var["total_guarantee_balance"] -= $guarantee;
+
+									response['message'] = "Agreement found and funds sent back to parties ^^";
+								}
+								else
+								{ // safe the proposition
+									if (var[$name||"_party1"] == trigger.address)
+										var[$name||"_proposition1"] = $amount;
+									else
+										var[$name||"_proposition2"] = $amount;
+
+									response['message'] = "Proposition recorded ("||$amount||" bytes), the other party should set 'amount' to "|| ($guarantee - $amount)||" bytes to find agreement ^^";
+								}
+							}"
+						}
+					]
+				},
+				{ 	// default case
+					init: "{ 
+						if (trigger.address != $owner)
+							bounce ("you need to read the doc!");
+					}",
+					messages: [
+						{
+							app: 'payment',
+							payload: {
+								asset: "base",
+								outputs: [
+									{ address: "{$owner}", amount: "{ balance[base] - var["blocked_balance"] - 1000 }" },
+								]
+							}
+						},
+						{ 
+							app: "state", state: "{
+								response['message'] = "Dust sent to owner";
+							}"
+						}
+					]
+				}
+			]
+		}
+	}
+]
