@@ -4,8 +4,8 @@ Two parties agree on the amount of a renting guarantee, the renter send the amou
 
 ## Use cases:
 * Create a named guarantee by sending its amount and the address of the other party to ARGAA:
-   * 'create' = '<amount of guarantee>'
-   * 'other_party' = '<address>'
+   * 'create' = 'amount of guarantee'
+   * 'other_party' = 'address'
 * Each party can propose to the AA, the part of the guarantee amount to release to the other_party:
-   * 'amount' = '<amount for the other party>'
+   * 'amount' = 'amount for the other party'
 * The owner of the AA can withdraw the dust.
