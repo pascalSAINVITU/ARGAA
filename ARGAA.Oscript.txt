@@ -1,8 +1,12 @@
 { 
+	/*
+	Check in explorer: https://testnetexplorer.obyte.org/#ZbIuc0fwZosvZW8P2TRzBs5V05IA20kFBA70JzuJj9s=
+Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
+*/
 	init: "{
 		$i = trigger.data;
 
-		// How is works
+		// How is works, instruction to be bounce if not used case selected
 			$INSTRUCTIONS = "Create a locked guarantee with 'create' = <unique account name> and 'owner' = <address of the owner for who you should lock a guarantee for>. Once locked, it will require consensus between the 2 parties on how to distribute it to unlock it. Both parties should use 'proposition' = <part of the guarantee you are agree to release for the other party>. When the sum of the 2 propositions is equal to the guarantee amount, the guarantee is unlock and distribute accordingly to  the 2 parties.";
 
 		// Owner of the AA can withdraw the dust
@@ -14,7 +18,7 @@
 			$key = $account_name||"_";
 
 		// There is 2 parties, owner and renter, known from the AA state or from the input during creation of the account
-			$owner = var[$key||"owner"] otherwise $i.owner otherwise $i.o otherwise bounce ("need 'owner' address!");
+			$owner = var[$key||"owner"] otherwise $i.owner otherwise $i.o;
 			$renter = var[$key||"renter"] otherwise trigger.address;
 
 		// the object of the account is the guarantee, known a existing account or equal to the funds sent during the creation
@@ -32,12 +36,13 @@
 		cases: [
 			{ 	// create the guarantee on the renting of something valuable.
 				if: "{ !!$i.create and !!$owner}",
-				init: "{ if (var[$key||"guarantee"]) bounce ("Already a guarantee with this name"); }",
+				init: "{ 
+					if (var[$key||"guarantee"]) bounce ("Already a guarantee with this name"); 
+					if (!$owner) bounce ("need 'owner = <address>'!");
+					}",
 				messages: [
 					{ 
-						app: 'data', payload:{ 
-							account_name: "{ $account_name }", guarantee: "{ $guarantee }", aa: "{ this_address }"
-						}
+						app: 'data', payload:{ account_name: "{ $account_name }", guarantee: "{ $guarantee }", aa: "{ this_address }"	}
 					},
 					{
 						app: 'payment', payload: { asset: 'base', outputs: [
@@ -73,23 +78,19 @@
 					$amount_to_send_to_owner = $agreement_found ? $new_renter_proposition : trigger.address == $renter ? 1:0;
 				}",
 				messages: [
-					{
-						app: 'data', payload:
+					{ app: 'data', payload:
 						{ 
 							account_name:  "{ $account_name }", guarantee: "{ $guarantee }", agreement: "{ $agreement_found }", 
 							renter_proposition: "{ $new_renter_proposition }", owner_proposition: "{ $new_owner_proposition }",
 							aa: "{ this_address }"
 						} 
 					},
-					{
-						app: 'payment', payload: { asset: 'base', outputs: [
-							{ address: "{ $renter         }", amount: "{ $amount_to_send_to_renter         }" },
-							{ address: "{ $owner          }", amount: "{ $amount_to_send_to_owner          }" },
-							{ address: "{ trigger.address }", amount: "{ trigger.output[[asset=base]]-2000 }" }
-						] }
+					{ app: 'payment', payload: { asset: 'base', outputs: [
+						{ address: "{ $renter         }", amount: "{ $amount_to_send_to_renter         }" },
+						{ address: "{ $owner          }", amount: "{ $amount_to_send_to_owner          }" },
+						{ address: "{ trigger.address }", amount: "{ trigger.output[[asset=base]]-2000 }" } ] }
 					},
-					{ 
-						app: 'state', state: "{
+					{ app: 'state', state: "{
 							if ($agreement_found)
 							{   // clear the full state
 								var[$key||"renter"] = false;       var[$key||"renter_proposition"] = false;    
@@ -112,14 +113,10 @@
 			{ 	// default
 				init: "{ if (trigger.address != $AA_OWNER) bounce ($INSTRUCTIONS); }",
 				messages: [
-					{
-						app: 'payment', payload: {asset: "base",outputs: [
-							{ address: "{ $AA_OWNER }", amount: "{ balance[base] - $total - 1000 }" }
-						]}
+					{ app: 'payment', payload: {asset: "base",outputs: [
+							{ address: "{ $AA_OWNER }", amount: "{ balance[base] - $total - 1000 }" } ] }
 					},
-					{ 
-						app: "state", state: "{ response['message'] = "Dust sent to AA owner"; }"
-					}
+					{ app: "state", state: "{ response['message'] = "Dust sent to AA owner"; }"	}
 				]
 			}
 		]
