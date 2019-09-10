@@ -11,4 +11,4 @@ Two parties agree on the amount of a renting guarantee, the renter send the amou
 * The owner of the AA can withdraw the dust.
 
 Check in explorer: https://testnetexplorer.obyte.org/#kgv7Af1LqCwcEetT+Du614UVqQIcsVRhRtykzIj5KTc=
-Agent address: NKWWAEIIJNQ2SLQMHWT4XVQQ4Y2SPFCO
+# Agent address: NKWWAEIIJNQ2SLQMHWT4XVQQ4Y2SPFCO
