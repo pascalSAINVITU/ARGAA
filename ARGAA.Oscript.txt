@@ -1,11 +1,12 @@
 { 
 	/*
 	Check in explorer: https://testnetexplorer.obyte.org/#ZbIuc0fwZosvZW8P2TRzBs5V05IA20kFBA70JzuJj9s=
-Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
+    Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
+
+    Check in explorer: https://testnetexplorer.obyte.org/#jsRaE/Ocg3yZsqHN48dsKGyXGSgac9FI/oXX2HN96qI=
+    Agent address: CNHDFLTMODVOSWVVQ247GWCT5HFMAKKM
 */
 	init: "{
-		$i = trigger.data;
-
 		// How is works, instruction to be bounce if not used case selected
 			$INSTRUCTIONS = "Create a locked guarantee with 'create' = <unique account name> and 'owner' = <address of the owner for who you should lock a guarantee for>. Once locked, it will require consensus between the 2 parties on how to distribute it to unlock it. Both parties should use 'proposition' = <part of the guarantee you are agree to release for the other party>. When the sum of the 2 propositions is equal to the guarantee amount, the guarantee is unlock and distribute accordingly to  the 2 parties.";
 
@@ -13,96 +14,117 @@ Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
 			$AA_OWNER = "MYESSCFGDERS3YIEGNZDOG2BI5HKQHLU";
 			$AA_NAME = "ARGAA";  // A Renting Guarantee Autonomous Agent
 		
-		// Account name is used to store de related information
-			$account_name = $i.account_name otherwise $i.create;
-			$key = $account_name||"_";
-
-		// There is 2 parties, owner and renter, known from the AA state or from the input during creation of the account
-			$owner = var[$key||"owner"] otherwise $i.owner otherwise $i.o;
-			$renter = var[$key||"renter"] otherwise trigger.address;
-
-		// the object of the account is the guarantee, known a existing account or equal to the funds sent during the creation
-			$guarantee = var[$key||"guarantee"] otherwise trigger.output[[asset=base]]-1000;
-
-		// For the gurantee to be release, both parties should send proposition of release for the other party:
-			$owner_proposition =  var[$key||"owner_proposition"] otherwise 0;
-			$renter_proposition = var[$key||"renter_proposition"] otherwise 0;
-			$trigger_proposition = $i.proposition otherwise $i.p otherwise false;
 
 		// the AA is keeping in mind the total amount of guarantee to have a way to now the dust available in its balance:
 			$total = var["total"] otherwise 0;
 	}",
 	messages: {
 		cases: [
-			{ 	// create the guarantee on the renting of something valuable.
-				if: "{ !!$i.create and !!$owner}",
+			{ 	if: "{ !!trigger.data.create}", // create the guarantee on the renting of something valuable.
 				init: "{ 
-					if (var[$key||"guarantee"]) bounce ("Already a guarantee with this name"); 
-					if (!$owner) bounce ("need 'owner = <address>'!");
-					}",
+                    // account name defined?
+                        if (!trigger.data.account_name)
+                            bounce ("Add 'account_name' !");
+                    // account exist already?      
+                        if (var[trigger.data.account_name||"guarantee"])
+                            bounce ("Already a guarantee with this name !"); 
+                    // owner defined?
+                        if (!trigger.data.owner)
+                            bounce ("Add 'owner'= <owner address> !");
+                    // the object of the account is the guarantee
+                        if (trigger.output[[asset=base]] <= 10000)
+                            bounce ("You must add the guarentee value to the 10 000 bytes fee !" );
+                    // isolate guarentee
+                        $guarantee = trigger.output[[asset=base]]-1000;
+                }",
 				messages: [
-					{ 
-						app: 'data', payload:{ account_name: "{ $account_name }", guarantee: "{ $guarantee }", aa: "{ this_address }"	}
+					{   // prepare data to send to the owner
+						app: 'data', payload:{ 
+                            account_name: "{ trigger.data.account_name }", 
+                            guarantee: "{ $guarantee }", 
+                            aa: "{ this_address }"	}
 					},
-					{
+					{   // send message to owner
 						app: 'payment', payload: { asset: 'base', outputs: [
 							{ address: "{ $owner }", amount: "{ 1 }" } // 1 symbolic bytes with account name and amount
 						] }
 					},
 					{ 
 						app: "state", state: "{
-							var[$key||"owner"] = $owner;       var[$key||"guarantee"] = $guarantee; 
-							var[$key||"renter"] = $renter;     var["total"] = $total + $guarantee;
+							var[trigger.data.account_name||"_owner"] = trigger.data.owner;       
+                            var[trigger.data.account_name||"_guarantee"] = $guarantee; 
+							var[trigger.data.account_name||"_renter"] = trigger.address;     
+                            var["total"] += $guarantee;
 							
-							response['message'] = $guarantee||" bytes locked as guarantee.";
+							response['message'] = $guarantee||" bytes locked as guarantee for "||trigger.data.account_name;
 						}"
 					}
 				]
 			},
-			{ 	// propose the amount to release to the other.
-				if: "{ !!$i.account_name and !!$trigger_proposition }",
+			{   if: "{ !!trigger.data.proposition}",	// propose the amount to release to the other.
 				init: "{ 
-				// Exceptions
-					if ($trigger_proposition > $guarantee) bounce ("The proposition is larger than the full guarantee!");
-					if (trigger.address != $renter and trigger.address != $owner) bounce ("You are not part of the agreement!");
-					
-				// Lets find which party is giving a new proposition
-					$new_owner_proposition = trigger.address == $owner ? $trigger_proposition : $owner_proposition;
-					$new_renter_proposition = trigger.address == $renter ? $trigger_proposition : $renter_proposition;
-					
-				// Agreement is found if both propositions have been received and their sum is equal to the guarantee
-					$agreement_found = ( $new_owner_proposition + $new_renter_proposition ) == $guarantee;
-					
-				// Distribute the guarantee? send a symbolic byte to make a party aware of the new proposition?
-					$amount_to_send_to_renter = $agreement_found ? $new_owner_proposition : trigger.address == $owner  ? 1:0;
-					$amount_to_send_to_owner = $agreement_found ? $new_renter_proposition : trigger.address == $renter ? 1:0;
+                    // account exist already?      
+                        if (!var[trigger.data.account_name||"guarantee"])
+                            bounce ("Account/Guarentee do not exist with this name !"); 
+                    // check if user is part of the contract
+                        if (trigger.address != var[trigger.data.account_name||"_owner"] and 
+                            trigger.address != var[trigger.data.account_name||"_renter"]) 
+                            bounce ("You are not part of the agreement!");
+                    // get guarantee amount from var state
+                        $guarantee = var[trigger.data.account_name||"guarantee"];
+                    // check if propostiion is a value
+                        if (!is_integer(trigger.data.proposition))
+                            bounce ("The proposition should be between 0 and "||$guarantee);
+                    // realist propostion of release?
+                        if (trigger.data.proposition > $guarantee)
+                            bounce ("The proposition is larger than the full guarantee! "||$guarantee|| "bytes");
+                        
+                    // Lets find which party is giving a new proposition
+                        $owner_proposition = trigger.address == var[trigger.data.account_name||"_owner"] ? 
+                            trigger.data.proposition : var[trigger.data.account_name||"_owner_proposition"];
+                        $renter_proposition = trigger.address == var[trigger.data.account_name||"_renter"] ? 
+                            trigger.data.proposition : var[trigger.data.account_name||"_renter_proposition"];
+                        
+                    // Agreement is found if both propositions have been received and their sum is equal to the guarantee
+                        $agreement_found = (( $owner_proposition + $renter_proposition ) == $guarantee);
+                        
+                    // Distribute the guarantee? send a symbolic byte to make a party aware of the new proposition?
+                        $amount_to_send_to_renter = $agreement_found ?
+                            $owner_proposition : (trigger.address == var[trigger.data.account_name||"_owner"])  ? 1:0;
+                        $amount_to_send_to_owner = $agreement_found ?
+                            $renter_proposition : (trigger.address == var[trigger.data.account_name||"_renter"]) ? 1:0;
 				}",
 				messages: [
 					{ app: 'data', payload:
 						{ 
-							account_name:  "{ $account_name }", guarantee: "{ $guarantee }", agreement: "{ $agreement_found }", 
-							renter_proposition: "{ $new_renter_proposition }", owner_proposition: "{ $new_owner_proposition }",
+							account_name:  "{ trigger.data.account_name }", 
+                            guarantee: "{ $guarantee }", 
+                            agreement: "{ $agreement_found }", 
+							renter_proposition: "{ $renter_proposition }", 
+                            owner_proposition: "{ $owner_proposition }",
 							aa: "{ this_address }"
 						} 
 					},
 					{ app: 'payment', payload: { asset: 'base', outputs: [
-						{ address: "{ $renter         }", amount: "{ $amount_to_send_to_renter         }" },
-						{ address: "{ $owner          }", amount: "{ $amount_to_send_to_owner          }" },
+						{ address: "{ var[trigger.data.account_name||"_renter"] }", amount: "{ $amount_to_send_to_renter }" },
+						{ address: "{ var[trigger.data.account_name||"_owner"] }", amount: "{ $amount_to_send_to_owner }" },
 						{ address: "{ trigger.address }", amount: "{ trigger.output[[asset=base]]-2000 }" } ] }
 					},
 					{ app: 'state', state: "{
 							if ($agreement_found)
 							{   // clear the full state
-								var[$key||"renter"] = false;       var[$key||"renter_proposition"] = false;    
-								var[$key||"owner"] = false;        var[$key||"owner_proposition"] = false;
-								var[$key||"guarantee"] =  false;   var["total"] = $total - $guarantee;
-
+								var[trigger.data.account_name||"_renter"] = false;       
+								var[trigger.data.account_name||"_owner"] = false;        
+                                var[trigger.data.account_name||"_renter_proposition"] = false;    
+                                var[trigger.data.account_name||"_owner_proposition"] = false;
+								var[trigger.data.account_name||"_guarantee"] =  false;   
+                                var["total"] = $total - $guarantee;
 								response['message'] = "Agreement found and funds have been sent back to parties ^^";
 							}
 							else
 							{ // safe the proposition
-								var[$key||"renter_proposition"] = $new_renter_proposition;
-								var[$key||"owner_proposition"] = $new_owner_proposition;
+								var[trigger.data.account_name||"_renter_proposition"] = $renter_proposition;
+								var[trigger.data.account_name||"_owner_proposition"] = $owner_proposition;
 
 								response['message'] = "Proposition recorded ("||$trigger_proposition||" bytes), the other party should set 'amount' to "|| ($guarantee - $trigger_proposition)||" bytes to find agreement ^^";
 							}
@@ -110,7 +132,7 @@ Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
 					}
 				]
 			},
-			{ 	// default
+			{ 	// default pay the developper with the dust available or bounce the instruction
 				init: "{ if (trigger.address != $AA_OWNER) bounce ($INSTRUCTIONS); }",
 				messages: [
 					{ app: 'payment', payload: {asset: "base",outputs: [
