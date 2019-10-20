@@ -1,0 +1,16 @@
+{
+	"name": "ARGAA bot",
+	"version": "1.0.0",
+	"description": "Example source code for Obyte chatbot",
+	"main": "start.js",
+	"repository": "https://github.com/byteball/bot-example.git",
+	"author": "tony",
+	"license": "MIT",
+	"dependencies": {
+		"base64url": "3.0.1",
+		"headless-obyte": "git+https://github.com/byteball/headless-obyte.git#aa",
+		"js-base64": "2.5.1",
+		"js-sha256": "0.9.0",
+		"ocore": "git+https://github.com/byteball/ocore.git#rocks-and-formulas"
+	}
+}

@@ -10,53 +10,58 @@
 <link rel="stylesheet" type="text/css" href="ARGAA.css" media="screen" />
 
 <div id="top">
-   <a href="https://obyte.org/" target="_blank"> <img src="https://static.ucraft.net/fs/userFiles/byteball/images/100-obyte-blue-175x124.png"/></a>
+   <a href="https://obyte.org/" target="_blank"> <img src="https://static.ucraft.net/fs/userFiles/byteball/images/100-obyte-blue-175x124.png" width="100" /></a>
 </div>
 
 <form class="form-style-7">
 	<h1> Welcome to ARGAA, A Renting Guarantee Autonomous Agent powered by the Obyte Open-Ledger </h1>
-	<ul>
+	<ul> The purpose of this page is to help you preparing the data that you need to send to ARGAA 
+	in order to create a safe renting guarantee or to try to unlock it. To be able to send money (Gbytes) 
+	to the AA you need the <a href=https://obyte.org/testnet.html">test-net Obyte wallet</a> installed.
+		<br> <br> <br> 
 		<li>
 			<label for="name">AA address to use: </label>
-			<input name="aa" type="text" id="aa" maxlength="32" value="IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU" />
+			<br> <input name="aa" type="text" id="aa" maxlength="32" value="IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU"/><br> 
 			<span>The renting guarantee is securized by an Autonomous Agent powered by Obyte. 
 			Its definition can be reviewed <a href="https://testnetexplorer.obyte.org/#IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU">here</a>. 
 			You can specify an other address if you know a better version. </span>
 		</li> <li> </li>
 	</ul>
 	<h1>  Lock a new guarantee for a rented item <br> </h1>
-	<ul>  Make sure you are using single address wallet, if not your address will constantly change and the AA will not recognise you.<br><br>
+	<ul>  Make sure you are using single address wallet, if not your address will constantly change and the AA will not recognise you.
+		<br><br><br> 
 		<li>
 			<label for="email">Owner Obyte address: </label>
-			<input name="owner" type="text" id="owner" maxlength="32" value="35IT3ZYKEPQSCXG2F7A7KWNRAD3SZXN4" placeholder="35IT3ZYKEPQSCXG2F7A7KWNRAD3SZXN4"/><br />
+			<br> <input name="owner" type="text" id="owner" maxlength="32" placeholder="35IT3ZYKEPQSCXG2F7A7KWNRAD3SZXN4" placeholder="35IT3ZYKEPQSCXG2F7A7KWNRAD3SZXN4"/><br> 
 			<span>Please enter the Obyte address (from a single-address wallet) of the owner of the rented item.</span>
 		</li>
 		<li>
 			<label for="url">Name of the guarantee:</label>
-			<input name="name" type="text" id="name" placeholder="my_account" maxlength="128" /><br />
+			<br> <input name="name" type="text" id="name" placeholder="my_account" maxlength="128" /><br> 
 			<span>Enter a unique name for the guarantee, the name will be needed later to identify the guarantee when it will be time find agreement on how to re-distribute the guarantee amount.</span>
 		</li>
 		<li>
 			<label for="bio">Guarantee amount in bytes:</label>
-			<input name="amount" type="text" id="amount" value = 5000 placeholder=5000/>
+			<br> <input name="amount" type="text" id="amount" placeholder=100000 /><br> 
 			<span>Please enter the amount of bytes required by the owner. 10 000 bytes of AA fee will be automatically added.</span>
 		</li>
 		<li>
-			<input name="btn_create" id="create" type="submit" value="Open Obyte Wallet with pre-filled transaction to AA" >
+			<br> <input name="btn_create" id="create" type="submit" value="Open Obyte Wallet with pre-filled transaction to AA" ><br> 
 		</li>
 	</ul>
 	<h1> <br> <br>  Make a proposition to unlock an existing guarantee <br> 
 	</h1>
 	<ul>	
-		Make sure you are using the same wallet that the one you used to during the creation of the guarantee.<br><br>
+		Make sure you are using the same wallet that the one you used to during the creation of the guarantee.
+		<br> <br><br>
 		<li>
 			<label for="url">Name of the guarantee:</label>
-			<input name="name2" type="text" id="name2"  maxlength="128" placeholder="my_account"/><br />
+			<br> <input name="name2" type="text" id="name2"  maxlength="128" placeholder="my_account"/><br> 
 			<span>Enter the unique name of the existing guarantee.</span>
 		</li>
 		<li>
 			<label for="bio">Amount of byte to release for the other party:</label>
-			<input name="amount2" type="text" id="amount2"  placeholder = 10000 />
+			<br> <input name="amount2" type="text" id="amount2"  placeholder = 50000 /><br> 
 			<span>Please enter the amount of bytes from the guarantee amount that you are ready to give up to the other party. 
 			If the other party release the other part, the AA will distribute both amounts to parties. 
 			The sum of both propositions must be equal to the total value of the guarantee.
@@ -74,7 +79,7 @@
 
 <div id="text_link"></div>
 <div id="bottom" align=center>
-	<a href="https://github.com/pascalSAINVITU/ARGAA" target="_blank"> <img id="img1" src="https://obyte.org/static/images/github_footer_img.png" size=50%/></a>
+	<a href="https://github.com/pascalSAINVITU/ARGAA" target="_blank"> <img id="img1" width="50" src="https://obyte.org/static/images/github_footer_img.png" size=50%/></a>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
