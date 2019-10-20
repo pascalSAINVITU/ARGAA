@@ -5,6 +5,16 @@
 
     Check in explorer: https://testnetexplorer.obyte.org/#jsRaE/Ocg3yZsqHN48dsKGyXGSgac9FI/oXX2HN96qI=
     Agent address: CNHDFLTMODVOSWVVQ247GWCT5HFMAKKM
+
+    Check in explorer: https://testnetexplorer.obyte.org/#6MHi6DoaVXWRiU7htI3nrOz1hwSCAv/obP05PbT51rU=
+    Agent address: ZG5YUD2LXEVKERZQEPXDI664DD37IJRM
+
+    Check in explorer: https://testnetexplorer.obyte.org/#sBfOr5eVLwHTbSuMDQHBXEOMXq2qOSl7ucQXycCm0NQ=
+Agent address: JO7J7IB2DPLBLLDSYX26Z34DL7YV5NPR
+
+Check in explorer: https://testnetexplorer.obyte.org/#lfHEbmVizD8Ma5E0l529MMVlmCROtanCYsbw9ecx/kY=
+Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
+
 */
 	init: "{
 		// How is works, instruction to be bounce if not used case selected
@@ -26,15 +36,15 @@
                         if (!trigger.data.account_name)
                             bounce ("Add 'account_name' !");
                     // account exist already?      
-                        if (var[trigger.data.account_name||"guarantee"])
+                        if (var[trigger.data.account_name||"_guarantee"])
                             bounce ("Already a guarantee with this name !"); 
                     // owner defined?
                         if (!trigger.data.owner)
                             bounce ("Add 'owner'= <owner address> !");
                     // the object of the account is the guarantee
                         if (trigger.output[[asset=base]] <= 10000)
-                            bounce ("You must add the guarentee value to the 10 000 bytes fee !" );
-                    // isolate guarentee
+                            bounce ("You must add the guarantee value to the 10 000 bytes fee !" );
+                    // isolate guarantee
                         $guarantee = trigger.output[[asset=base]]-1000;
                 }",
 				messages: [
@@ -46,7 +56,8 @@
 					},
 					{   // send message to owner
 						app: 'payment', payload: { asset: 'base', outputs: [
-							{ address: "{ $owner }", amount: "{ 1 }" } // 1 symbolic bytes with account name and amount
+							{ address: "{ trigger.data.owner }", amount: "{ 1 }" }, // 1 symbolic bytes with account name and amount
+                            { address: "{ trigger.data.owner }", amount: "{ 1 }" }
 						] }
 					},
 					{ 
@@ -64,14 +75,14 @@
 			{   if: "{ !!trigger.data.proposition}",	// propose the amount to release to the other.
 				init: "{ 
                     // account exist already?      
-                        if (!var[trigger.data.account_name||"guarantee"])
-                            bounce ("Account/Guarentee do not exist with this name !"); 
+                        if (!var[trigger.data.account_name||"_guarantee"])
+                            bounce ("Account/guarantee do not exist with this name !"); 
                     // check if user is part of the contract
                         if (trigger.address != var[trigger.data.account_name||"_owner"] and 
                             trigger.address != var[trigger.data.account_name||"_renter"]) 
                             bounce ("You are not part of the agreement!");
                     // get guarantee amount from var state
-                        $guarantee = var[trigger.data.account_name||"guarantee"];
+                        $guarantee = var[trigger.data.account_name||"_guarantee"];
                     // check if propostiion is a value
                         if (!is_integer(trigger.data.proposition))
                             bounce ("The proposition should be between 0 and "||$guarantee);
