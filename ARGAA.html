@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8"> 
-  <title>Test</title>
+  <title>ARGAA, A Renting Guarantee Autonomous Agent ^^</title>
 
 </head>
 
@@ -17,13 +17,13 @@
 	<h1> Welcome to ARGAA, A Renting Guarantee Autonomous Agent powered by the Obyte Open-Ledger </h1>
 	<ul> The purpose of this page is to help you preparing the data that you need to send to ARGAA 
 	in order to create a safe renting guarantee or to try to unlock it. To be able to send money (Gbytes) 
-	to the AA you need the <a href=https://obyte.org/testnet.html">test-net Obyte wallet</a> installed.
+	to the AA you need the <a href="https://obyte.org/testnet.html" target="_blank">test-net Obyte wallet</a> installed.
 		<br> <br> <br> 
 		<li>
 			<label for="name">AA address to use: </label>
-			<br> <input name="aa" type="text" id="aa" maxlength="32" value="IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU"/><br> 
+			<br> <input name="aa" type="text" id="aa" maxlength="32" value="FISR6BC5HFEJ433MMGSSCW4NXUCOFXLA"/><br> 
 			<span>The renting guarantee is securized by an Autonomous Agent powered by Obyte. 
-			Its definition can be reviewed <a href="https://testnetexplorer.obyte.org/#IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU">here</a>. 
+			Its <a href="https://testnetexplorer.obyte.org/#FISR6BC5HFEJ433MMGSSCW4NXUCOFXLA" target="_blank" >definition can be reviewed here</a>. 
 			You can specify an other address if you know a better version. </span>
 		</li> <li> </li>
 	</ul>
@@ -52,23 +52,24 @@
 	<h1> <br> <br>  Make a proposition to unlock an existing guarantee <br> 
 	</h1>
 	<ul>	
-		Make sure you are using the same wallet that the one you used to during the creation of the guarantee.
+		Make sure you are using the same wallet as the one you used during the creation of the guarantee.
 		<br> <br><br>
 		<li>
 			<label for="url">Name of the guarantee:</label>
 			<br> <input name="name2" type="text" id="name2"  maxlength="128" placeholder="my_account"/><br> 
-			<span>Enter the unique name of the existing guarantee.</span>
+			<span>Enter the unique name of the existing guarantee. you can check the existing names available in the 
+			<a href="https://testnetexplorer.obyte.org/#FISR6BC5HFEJ433MMGSSCW4NXUCOFXLA" target="_blank" >state variable of the aa</a></span>
 		</li>
 		<li>
 			<label for="bio">Amount of byte to release for the other party:</label>
 			<br> <input name="amount2" type="text" id="amount2"  placeholder = 50000 /><br> 
 			<span>Please enter the amount of bytes from the guarantee amount that you are ready to give up to the other party. 
-			If the other party release the other part, the AA will distribute both amounts to parties. 
+			If the other party releases the other part, the AA will distribute each of the amounts to right party. 
 			The sum of both propositions must be equal to the total value of the guarantee.
 			You can check in the state of the AA, 
-			<a href="https://testnetexplorer.obyte.org/#IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU">the guarantee amount</a>
+			<a href="https://testnetexplorer.obyte.org/#FISR6BC5HFEJ433MMGSSCW4NXUCOFXLA" target="_blank">the guarantee amount</a>
 			('account name'_guarantee: 'amount') as well as the existing (or not) 
-			<a href="https://testnetexplorer.obyte.org/#IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU">propositions</a> 
+			<a href="https://testnetexplorer.obyte.org/#FISR6BC5HFEJ433MMGSSCW4NXUCOFXLA" target="_blank">propositions</a> 
 			('account name'_proposition: 'amount')</span>
 		</li>
 		<li>
@@ -86,72 +87,63 @@
 
 <script type="text/javascript">
 
-function get64basedData (data)
-{
-	let json_string = JSON.stringify(data);
-	let encodedString = btoa(json_string);
-	
-	let lastchar = encodedString.substring(encodedString.length - 1);
-	
-	let base64;
-	if (lastchar === '=')
-		base64= encodedString.substring(0, encodedString.length - 1);
-	else
-		base64= encodedString
+	function get64basedData (data)
+	{
+		let json_string = JSON.stringify(data);
+		let encodedString = btoa(json_string);
 		
-	console.log("base64: "+base64);
-	
-	return base64;
-}
-
-$("#create").on("click", function (e){
-	e.preventDefault();
-	
-	console.log("account_name: " + $("#name").val());
-	
-	let data = {
-		create: 1,
-		account_name: $("#name").val(),
-		owner: $("#owner").val(),
-	};
-	
-	var guarantee_amount = parseInt($("#amount").val());
-	
-	var total_amount = guarantee_amount + 10000;
-	
-	var byteball_link = "byteball-tn:" + $("#aa").val() + "?amount=" + total_amount + "&base64data=" + get64basedData(data);
-	// to see the log in the console, press F12
-	console.log("byteball_link: "+byteball_link);
-
-	//print the text in <div id="text_link"></div>
-	//$("#text_link").html(txt);
-
-	//redirect browser window to the encoded url - uncomment:	
-	//window.location.href = txt;	
-	window.open( byteball_link, '_blank' );
+		// depending on the size of the input data, the encoded string ends with one
+		// or two equal signs '=' that need to be removed
+		while ( encodedString.substring(encodedString.length - 1) === "=") {
+			encodedString = encodedString.substring(0, encodedString.length - 1);;
+		}
+		console.log("encodedstring:"+encodedString);
 		
-});
-
-$("#proposition").on("click", function (e){
-	e.preventDefault();
+		return encodedString;
+	}
 	
-	let data = {
-		account_name: $("#name2").val(),
-		proposition: $("#amount2").val(),
-	};
 	
-	var byteball_link2 = "byteball-tn:" + $("#aa").val() + "?amount=" + 10000 + "&base64data=" + get64basedData(data);
-	
-	// to see the log in the console, press F12
-	console.log("byteball_link: "+ byteball_link2);
-
-	//print the text in <div id="text_link"></div>
-	//$("#text_link").html(txt);
-
-	//redirect browser window to the encoded url - uncomment:	
-	window.location.href = byteball_link2;	
+	$("#create").on("click", function (e){
+		e.preventDefault();
 		
-});
+		let data = {
+			create: 1,
+			account_name: $("#name").val(),
+			owner: $("#owner").val(),
+		};
+		
+		var guarantee_amount = parseInt($("#amount").val());
+		var total_amount = guarantee_amount + 10000;
+		
+		var byteball_link = "byteball-tn:" + $("#aa").val() + "?amount=" + 
+			total_amount + "&base64data=" + get64basedData(data);
+		
+		
+		console.log("byteball_link:"+byteball_link);
+		
+		window.open( byteball_link, '_blank' );
+	});
+
+	$("#proposition").on("click", function (e){
+		e.preventDefault();
+		
+		let data = {
+			account_name: $("#name2").val(),
+			proposition: $("#amount2").val(),
+		};
+		
+		var byteball_link2 = "byteball-tn:" + $("#aa").val() + "?amount=" + 10000 + "&base64data=" + get64basedData(data);
+		
+		// to see the log in the console, press F12
+		console.log("byteball_link: "+ byteball_link2);
+
+		//print the text in <div id="text_link"></div>
+		//$("#text_link").html(txt);
+
+		//redirect browser window to the encoded url - uncomment:	
+		window.location.href = byteball_link2;	
+			
+	});
 </script>
 </body>
 </html>

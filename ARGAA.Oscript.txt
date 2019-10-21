@@ -1,39 +1,54 @@
 { 
-	/*
-	Check in explorer: https://testnetexplorer.obyte.org/#ZbIuc0fwZosvZW8P2TRzBs5V05IA20kFBA70JzuJj9s=
-    Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
+/*
+Check in explorer: https://testnetexplorer.obyte.org/#ZbIuc0fwZosvZW8P2TRzBs5V05IA20kFBA70JzuJj9s=
+Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
 
-    Check in explorer: https://testnetexplorer.obyte.org/#jsRaE/Ocg3yZsqHN48dsKGyXGSgac9FI/oXX2HN96qI=
-    Agent address: CNHDFLTMODVOSWVVQ247GWCT5HFMAKKM
+Check in explorer: https://testnetexplorer.obyte.org/#jsRaE/Ocg3yZsqHN48dsKGyXGSgac9FI/oXX2HN96qI=
+Agent address: CNHDFLTMODVOSWVVQ247GWCT5HFMAKKM
 
-    Check in explorer: https://testnetexplorer.obyte.org/#6MHi6DoaVXWRiU7htI3nrOz1hwSCAv/obP05PbT51rU=
-    Agent address: ZG5YUD2LXEVKERZQEPXDI664DD37IJRM
+Check in explorer: https://testnetexplorer.obyte.org/#6MHi6DoaVXWRiU7htI3nrOz1hwSCAv/obP05PbT51rU=
+Agent address: ZG5YUD2LXEVKERZQEPXDI664DD37IJRM
 
-    Check in explorer: https://testnetexplorer.obyte.org/#sBfOr5eVLwHTbSuMDQHBXEOMXq2qOSl7ucQXycCm0NQ=
+Check in explorer: https://testnetexplorer.obyte.org/#sBfOr5eVLwHTbSuMDQHBXEOMXq2qOSl7ucQXycCm0NQ=
 Agent address: JO7J7IB2DPLBLLDSYX26Z34DL7YV5NPR
 
 Check in explorer: https://testnetexplorer.obyte.org/#lfHEbmVizD8Ma5E0l529MMVlmCROtanCYsbw9ecx/kY=
 Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
 
+Check in explorer: https://testnetexplorer.obyte.org/#KDTXc0VhyJJNTY/edwKFb69lOeT5Np4rG72XA+eZ/Ow=
+Agent address: FDTO35USO7RUVJQNJL5WM66HG6FIL6N3
+
+Check in explorer: https://testnetexplorer.obyte.org/#P9bQy7ra4q/2cWbBk4Leibexc+uHaDVIzC7HpBk5YvQ=
+Agent address: LZBDVFO3EY742X7DNQADC5VNINLF575A
+
+Check in explorer: https://testnetexplorer.obyte.org/#WC2AaTZI8stVbWQQpQqlxzPivISVUv4cs5lSfq3GLPY=
+Agent address: UII4VNXGIDOUF65YUYTLXRF6YEBBD44V
+
+Check in explorer: https://testnetexplorer.obyte.org/#LQo7ZiDPyN7YRUroMzA3F57D6DZLZHrCDE8uc3LpEuQ=
+Agent address: ER4J7OAK65SWLBNRMW5QQGLBRS2DDQMO
+
+Check in explorer: https://testnetexplorer.obyte.org/#pKzso/+FsEjsDufs0pBKwrV/Mc7NWZaJMh6vL8gC9yA=
+Agent address: 77O4PCBTNFCX2RCODSS5O5PKAB2SGPA5
+
+Check in explorer: https://testnetexplorer.obyte.org/#L0bT7WNffiwX/Tj4o3J/ZYYPnAVPRNi6U3vkORzCDKQ=
+Agent address: FISR6BC5HFEJ433MMGSSCW4NXUCOFXLA
 */
 	init: "{
 		// How is works, instruction to be bounce if not used case selected
-			$INSTRUCTIONS = "Create a locked guarantee with 'create' = <unique account name> and 'owner' = <address of the owner for who you should lock a guarantee for>. Once locked, it will require consensus between the 2 parties on how to distribute it to unlock it. Both parties should use 'proposition' = <part of the guarantee you are agree to release for the other party>. When the sum of the 2 propositions is equal to the guarantee amount, the guarantee is unlock and distribute accordingly to  the 2 parties.";
+			$INSTRUCTIONS = "To create a locked guarantee send the gaurantee amount + 10 000 bytes with 'create = true', 'account_name = <unique account name>' and 'owner = <address of the owner for who you should lock a guarantee for>'. Once locked, it will require consensus between the 2 parties on how to distribute it to unlock it. Both parties should use 'account_name = <unique account name>' and'proposition = <part of the guarantee you are agree to release for the other party>''. When the sum of the 2 propositions is equal to the guarantee amount, the guarantee is unlock and distribute accordingly to  the 2 parties.";
 
 		// Owner of the AA can withdraw the dust
 			$AA_OWNER = "MYESSCFGDERS3YIEGNZDOG2BI5HKQHLU";
 			$AA_NAME = "ARGAA";  // A Renting Guarantee Autonomous Agent
-		
+            $bounce_fee = 10000;
 
-		// the AA is keeping in mind the total amount of guarantee to have a way to now the dust available in its balance:
-			$total = var["total"] otherwise 0;
 	}",
 	messages: {
 		cases: [
 			{ 	if: "{ !!trigger.data.create}", // create the guarantee on the renting of something valuable.
 				init: "{ 
                     // account name defined?
-                        if (!trigger.data.account_name)
+                       	if (!trigger.data.account_name)
                             bounce ("Add 'account_name' !");
                     // account exist already?      
                         if (var[trigger.data.account_name||"_guarantee"])
@@ -42,30 +57,30 @@ Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
                         if (!trigger.data.owner)
                             bounce ("Add 'owner'= <owner address> !");
                     // the object of the account is the guarantee
-                        if (trigger.output[[asset=base]] <= 10000)
-                            bounce ("You must add the guarantee value to the 10 000 bytes fee !" );
+                        if (trigger.output[[asset=base]] <= $bounce_fee)
+                            bounce ("You must add 10 000 bytes of fees to the guarantee value !" );
                     // isolate guarantee
-                        $guarantee = trigger.output[[asset=base]]-1000;
+                        $guarantee = trigger.output[[asset=base]]-$bounce_fee;
                 }",
 				messages: [
-					{   // prepare data to send to the owner
+					{   // prepare data to send to parties
 						app: 'data', payload:{ 
-                            account_name: "{ trigger.data.account_name }", 
-                            guarantee: "{ $guarantee }", 
-                            aa: "{ this_address }"	}
+                            			account_name: "{ trigger.data.account_name }", 
+                            			guarantee: "{ $guarantee }", 
+                            			aa: "{ this_address }"	}
 					},
 					{   // send message to owner
 						app: 'payment', payload: { asset: 'base', outputs: [
-							{ address: "{ trigger.data.owner }", amount: "{ 1 }" }, // 1 symbolic bytes with account name and amount
-                            { address: "{ trigger.data.owner }", amount: "{ 1 }" }
+							{ address: "{ trigger.data.owner }", amount: "{ 1 }" }, // 1 symbolic bytes with data
+                            { address: "{ trigger.address }", amount: "{ $bounce_fee - 1000 }" }
 						] }
 					},
 					{ 
 						app: "state", state: "{
 							var[trigger.data.account_name||"_owner"] = trigger.data.owner;       
-                            var[trigger.data.account_name||"_guarantee"] = $guarantee; 
+                            				var[trigger.data.account_name||"_guarantee"] = $guarantee; 
 							var[trigger.data.account_name||"_renter"] = trigger.address;     
-                            var["total"] += $guarantee;
+                            				var["total"] += $guarantee;
 							
 							response['message'] = $guarantee||" bytes locked as guarantee for "||trigger.data.account_name;
 						}"
@@ -92,9 +107,9 @@ Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
                         
                     // Lets find which party is giving a new proposition
                         $owner_proposition = trigger.address == var[trigger.data.account_name||"_owner"] ? 
-                            trigger.data.proposition : var[trigger.data.account_name||"_owner_proposition"];
+                            trigger.data.proposition : var[trigger.data.account_name||"_owner_proposition"] otherwise 0;
                         $renter_proposition = trigger.address == var[trigger.data.account_name||"_renter"] ? 
-                            trigger.data.proposition : var[trigger.data.account_name||"_renter_proposition"];
+                            trigger.data.proposition : var[trigger.data.account_name||"_renter_proposition"] otherwise 0;
                         
                     // Agreement is found if both propositions have been received and their sum is equal to the guarantee
                         $agreement_found = (( $owner_proposition + $renter_proposition ) == $guarantee);
@@ -109,10 +124,10 @@ Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
 					{ app: 'data', payload:
 						{ 
 							account_name:  "{ trigger.data.account_name }", 
-                            guarantee: "{ $guarantee }", 
-                            agreement: "{ $agreement_found }", 
+                            				guarantee: "{ $guarantee }", 
+                            				agreement: "{ $agreement_found }", 
 							renter_proposition: "{ $renter_proposition }", 
-                            owner_proposition: "{ $owner_proposition }",
+                            				owner_proposition: "{ $owner_proposition }",
 							aa: "{ this_address }"
 						} 
 					},
@@ -126,10 +141,10 @@ Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
 							{   // clear the full state
 								var[trigger.data.account_name||"_renter"] = false;       
 								var[trigger.data.account_name||"_owner"] = false;        
-                                var[trigger.data.account_name||"_renter_proposition"] = false;    
-                                var[trigger.data.account_name||"_owner_proposition"] = false;
+                                				var[trigger.data.account_name||"_renter_proposition"] = false;    
+                                				var[trigger.data.account_name||"_owner_proposition"] = false;
 								var[trigger.data.account_name||"_guarantee"] =  false;   
-                                var["total"] = $total - $guarantee;
+                                				var["total"] = $total - $guarantee;
 								response['message'] = "Agreement found and funds have been sent back to parties ^^";
 							}
 							else
@@ -137,7 +152,7 @@ Agent address: IRMDUTCPHBAS4Z5EDIGBSHPB57GBNYPU
 								var[trigger.data.account_name||"_renter_proposition"] = $renter_proposition;
 								var[trigger.data.account_name||"_owner_proposition"] = $owner_proposition;
 
-								response['message'] = "Proposition recorded ("||$trigger_proposition||" bytes), the other party should set 'amount' to "|| ($guarantee - $trigger_proposition)||" bytes to find agreement ^^";
+								response['message'] = "Proposition recorded ("||trigger.data.proposition||" bytes), the other party should set 'amount' to "|| ($guarantee - trigger.data.proposition)||" bytes to find agreement ^^";
 							}
 						}"
 					}
