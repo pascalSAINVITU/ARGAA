@@ -16,7 +16,6 @@ let assocDeviceWithUserAddress = {};
 let assocDeviceWithOwner = {};
 let assocDeviceWithAccountName = {};
 let assocDeviceWithGuaranteeAmount = {};
-let assocDeviceWithGuaranteeName = {};
 let assocDeviceAddressToPeerAddress = {};
 let assocPeerAddressToDeviceAddress = {};
 
@@ -174,10 +173,6 @@ function creating(from_address, text) {
 	}
 }
 
-function GuaranteeExist(name) {
-	return true;
-}
-
 function getFromAAIfKeyExist(from_address, key, func){
 	log("looking for: "+key);
 	var network = require('ocore/network.js');
@@ -229,12 +224,12 @@ function proposing(from_address, text) {
 							getFromAAIfKeyExist(from_address, guarantee_name+"_renter", (renter) => {
 								
 								getFromAAIfKeyExist(from_address, guarantee_name+"_renter_proposition", (renter_proposition) => {
-									getFromAAIfKeyExist(from_address, guarantee_name+"_renter_proposition", (owner_proposition) => {
+									getFromAAIfKeyExist(from_address, guarantee_name+"_owner_proposition", (owner_proposition) => {
 										reply(from_address, "The owner and renter addresses are : "+owner+", "+renter+", "+
 										"you must use one of these addresses to be able to do a proposition. "+
 										"For now, the renter proposal is "+renter_proposition +". The one from the owner is "+owner_proposition+". "+
 										"As reminder, the sum of both proposals must equals to the total amount in order to unlocked funds from the AA. ");
-										reply(from_address, "What part from the "+ amount +" bytes do you want to release for the other party? "+
+										reply(from_address, "What part from the "+ amount +" bytes do you want to release for the other party? Enter the amount in bytes or choose one of those percentage."+
 										"[20%](command:"+ Math.round(amount * 0.2)+ "), " +
 										"[50%](command:"+ Math.round(amount * 0.5)+ "), " +
 										"[80%](command:"+ Math.round(amount * 0.8)+ "), [full](command:"+amount+").");
@@ -317,7 +312,7 @@ function help(from_address){
 	{
 		reply(from_address, "Options are: [Identify](command:IDENTIFY) yourself as a renter of owner, so that I can monitor your interaction with the AA. "+
 		"If you are renter you can [create](command:CREATE) a new renting guarantee. "+
-		"Owner or renter you can make a [proposition](command:PROPOSITION) to un lock a existing guarantee where you are one of the parties. "+
+		"Owner or renter you can make a [proposition](command:PROPOSITION) to unlock an existing guarantee where you are one of the parties. "+
 		"[Learn](command:LEARN) more about ARGAA. ");
 	}
 }
@@ -332,51 +327,54 @@ eventBus.once('headless_wallet_ready', () => {
 		eventBus.on('aa_response_from_aa-' + aa_address, (objAAResponse) => {
 			// handle event
 			var msg = "received response from " + aa_address + " :  " + JSON.stringify( objAAResponse )
-			console.log( msg )
-			// device.sendMessageToDevice( registered , 'text' , msg ) 
 			
-			console.log("****************************************aa_response_from_aa"+objAAResponse);
-			try{
-				var trigger_address = objAAResponse.trigger_address
-				//if( trigger_address == obot_address ) return // prevent responding to itself
-
-				var responseVars = objAAResponse.response.responseVars 
-				var job = responseVars.job
-
-				if( responseVars.args == false ) var result = "missing input array"
-				else {
-
-					var arr = JSON.parse( responseVars.args )
-
-					console.log( "job " + job + " args " + JSON.stringify( arr ) )
-
-					var result = arr.sort() // the actual processing
-				}
-
-			}catch( e ){
-				var result = e.toString()
+			var address = assocPeerAddressToDeviceAddress[objAAResponse.trigger_address];
+			
+			if (address)
+			{
+				reply(address, objAAResponse.response.responseVars.message);
 			}
+			// console.log( msg )
+			// // device.sendMessageToDevice( registered , 'text' , msg ) 
+			
+			// log("aa_response_from_aa: "+objAAResponse);
+			// try{
+				// var trigger_address = objAAResponse.trigger_address
 
-			var json_data = { job: job , result: JSON.stringify( result ) }
-			var opts = {
-				//paying_addresses: [ obot_address ],
-				//change_address: obot_address ,
-				messages: [
-					{ app: 'data',
-						payload_location: 'inline' ,
-						payload_hash: json_data,
-						payload: json_data
-					}
-				],
-				to_address: aa_address ,
-				amount: 10000
-			}
-			headlessWallet.sendMultiPayment( opts , ( err , unit ) => {
-				if( err ) return console.log( err )
+				// var responseVars = objAAResponse.response.responseVars 
+				// var job = responseVars.job
 
-				//successful
-				console.log( "sent back result " + JSON.stringify( result ) ) 
-			})
+				// if( responseVars.args == false ) var result = "missing input array"
+				// else {
+
+					// var arr = JSON.parse( responseVars.args )
+
+				// }
+
+			// }catch( e ){
+				// var result = e.toString()
+			// }
+
+			// var json_data = { job: job , result: JSON.stringify( result ) }
+			// var opts = {
+				// //paying_addresses: [ obot_address ],
+				// //change_address: obot_address ,
+				// messages: [
+					// { app: 'data',
+						// payload_location: 'inline' ,
+						// payload_hash: json_data,
+						// payload: json_data
+					// }
+				// ],
+				// to_address: aa_address ,
+				// amount: 10000
+			// }
+			// headlessWallet.sendMultiPayment( opts , ( err , unit ) => {
+				// if( err ) return console.log( err )
+
+				// //successful
+				// console.log( "sent back result " + JSON.stringify( result ) ) 
+			// })
 			
 		});
 	});
@@ -384,7 +382,8 @@ eventBus.once('headless_wallet_ready', () => {
 	eventBus.on('paired', (from_address, pairing_secret) => {
 		// send a geeting message
 		const device = require('ocore/device.js');
-		device.sendMessageToDevice(from_address, 'text', "Welcome to S(HA)afe bot!");
+		device.sendMessageToDevice(from_address, 'text', "Welcome to ARGAA bot!");
+		help(from_address);
 	});
 
 	eventBus.on('text', (from_address, text) => {
@@ -412,13 +411,7 @@ eventBus.once('headless_wallet_ready', () => {
 });
 
 eventBus.on('new_my_transactions', (arrUnits) => {
-	// handle new unconfirmed payments
-	// and notify user
-	
-	console.log("****************************************new_my_transactions"+arrUnits);
-
-	console.log("****************************************my_transactions_became_stable"+arrUnits);
-	paymentWithUserInTheOutput(arrUnits, false);
+	//paymentWithUserInTheOutput(arrUnits, false);
 	paymentReceivedByAA(arrUnits, false);
 	
 	
@@ -442,7 +435,7 @@ function paymentReceivedByAA(arrUnits, stable){
 		rows.forEach(row => {
 			let deviceAddress = assocPeerAddressToDeviceAddress[row.address];
 			if (deviceAddress) {
-			   reply(deviceAddress, 'AA received your stable=' + stable + ' payment from you: ' + row.amount + ' bytes');
+			   reply(deviceAddress, 'ARGAA received your payment of ' + row.amount + ' bytes ('+ (stable? "stable": "unstable"));
 			   return true;
 			}
 		});
@@ -453,7 +446,7 @@ eventBus.on('my_transactions_became_stable', (arrUnits) => {
 	// handle payments becoming confirmed
 	// and notify user
 	console.log("****************************************my_transactions_became_stable"+arrUnits);
-	paymentWithUserInTheOutput(arrUnits, true);
+	//paymentWithUserInTheOutput(arrUnits, true);
 	paymentReceivedByAA(arrUnits, true);
 });
 
