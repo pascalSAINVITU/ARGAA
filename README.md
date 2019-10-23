@@ -1,11 +1,6 @@
 # Use cases:
-Create a named guarantee by sending its amount and the address of the other party to ARGAA:
-* 'create' = 'account name'
-* 'owner' = 'address'
-Each party can propose to the AA, the part of the guarantee amount to release to the other_party:
-'proposition' = 'amount for the other party'
-The owner of the AA can withdraw the dust.
-
-# Agent address: 
-NKWWAEIIJNQ2SLQMHWT4XVQQ4Y2SPFCO
-Check in explorer: https://testnetexplorer.obyte.org/#ZbIuc0fwZosvZW8P2TRzBs5V05IA20kFBA70JzuJj9s= Agent address: OHCLVB63IQ2NWFS3WQMUJXDO6G2YLKE4
+To create a locked guarantee send the gaurantee amount + 10 000 bytes with 'create = true', 'account_name = <unique account name>' and 'owner = <address of the owner for who you should lock a guarantee for>'. 
+  
+Once locked, it will require consensus between the 2 parties on how to distribute it to unlock it. Both parties should use 'account_name = <unique account name>' and'proposition = <part of the guarantee you are agree to release for the other party>''.
+  
+When the sum of the 2 propositions is equal to the guarantee amount, the guarantee is unlock and distribute accordingly to  the 2 parties.

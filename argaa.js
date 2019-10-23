@@ -435,7 +435,7 @@ function paymentReceivedByAA(arrUnits, stable){
 		rows.forEach(row => {
 			let deviceAddress = assocPeerAddressToDeviceAddress[row.address];
 			if (deviceAddress) {
-			   reply(deviceAddress, 'ARGAA received your payment of ' + row.amount + ' bytes ('+ (stable? "stable": "unstable"));
+			   reply(deviceAddress, 'ARGAA received your payment of ' + row.amount + ' bytes ('+ (stable? "stable": "unstable")+")");
 			   return true;
 			}
 		});
@@ -447,7 +447,7 @@ eventBus.on('my_transactions_became_stable', (arrUnits) => {
 	// and notify user
 	console.log("****************************************my_transactions_became_stable"+arrUnits);
 	//paymentWithUserInTheOutput(arrUnits, true);
-	paymentReceivedByAA(arrUnits, true);
+	//paymentReceivedByAA(arrUnits, true);
 });
 
 process.on('unhandledRejection', up => { throw up; });
