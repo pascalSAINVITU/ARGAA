@@ -447,7 +447,7 @@ eventBus.on('my_transactions_became_stable', (arrUnits) => {
 	// and notify user
 	console.log("****************************************my_transactions_became_stable"+arrUnits);
 	//paymentWithUserInTheOutput(arrUnits, true);
-	paymentReceivedByAA(arrUnits, true);
+	//paymentReceivedByAA(arrUnits, true);
 });
 
 process.on('unhandledRejection', up => { throw up; });
